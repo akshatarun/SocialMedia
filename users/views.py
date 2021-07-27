@@ -18,18 +18,29 @@ def users_list(request):
     sent_friend_requests = FriendRequest.objects.filter(from_user=request.user)
     my_friends = request.user.profile.friends.all()
     sent_to = []
-    friends = []
+	
+    #friends[] is the list of users to be recommended
+    friends = [] 
+	
     for user in my_friends:
+	
+	#Here friend[] is a list of friends_of_my_friend
         friend = user.friends.all()
+	
         for f in friend:
             if f in friends:
                 friend = friend.exclude(user=f.user)
         friends += friend
+    
+    #removing those users from friends[] who are already my friend
     for i in my_friends:
         if i in friends:
             friends.remove(i)
+    #removing myself from friends[]
     if request.user.profile in friends:
         friends.remove(request.user.profile)
+    
+    #adding a list of 10 random users to friends[] and again removing my friends ,myself and users already in friends[] from the list.
     random_list = random.sample(list(users), min(len(list(users)), 10))
     for r in random_list:
         if r in friends:
@@ -38,12 +49,15 @@ def users_list(request):
     for i in my_friends:
         if i in friends:
             friends.remove(i)
+	
     for se in sent_friend_requests:
         sent_to.append(se.to_user)
+	
     context = {
         'users': friends,
         'sent': sent_to
     }
+
     return render(request, "users/users_list.html", context)
 
 def friend_list(request):
@@ -99,6 +113,9 @@ def delete_friend(request, id):
 	friend_profile.friends.remove(user_profile)
 	return HttpResponseRedirect('/users/{}'.format(friend_profile.slug))
 
+#We have placed a restriction on the front end for only the user whose profile we are looking at can 
+#view the friends' list and not anyone else. So, we have put a check there ( {% if request.user == u%}) which 
+#checks for is current user equal to the user whose profile is being viewed.
 @login_required
 def profile_view(request, slug):
 	p = Profile.objects.filter(slug=slug).first()
@@ -200,6 +217,8 @@ def my_profile(request):
 
 	return render(request, "users/profile.html", context)
 
+#from search users, we remove those users whom we have already sent friend request
+#and those who are already our frinds
 @login_required
 def search_users(request):
 	query = request.GET.get('q')
@@ -219,7 +238,8 @@ def search_users(request):
 	}
 	return render(request, "users/search_users.html", context)
 
-
+#users to whom we have send friends request, with whom we are friends with will have different 
+#button status from rest of the users who liked our post.
 @login_required
 def liked_users_list(request, pk):
 	post = Post.objects.get(pk=pk)
