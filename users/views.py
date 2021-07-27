@@ -27,6 +27,7 @@ def users_list(request):
 	#Here friend[] is a list of friends_of_my_friend
         friend = user.friends.all()
 	
+	#doing this to avoid adding duplicate users to friends[]
         for f in friend:
             if f in friends:
                 friend = friend.exclude(user=f.user)
