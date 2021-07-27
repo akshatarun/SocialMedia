@@ -113,6 +113,9 @@ def delete_friend(request, id):
 	friend_profile.friends.remove(user_profile)
 	return HttpResponseRedirect('/users/{}'.format(friend_profile.slug))
 
+#We have placed a restriction on the front end for only the user whose profile we are looking at can 
+#view the friends' list and not anyone else. So, we have put a check there ( {% if request.user == u%}) which 
+#checks for is current user equal to the user whose profile is being viewed.
 @login_required
 def profile_view(request, slug):
 	p = Profile.objects.filter(slug=slug).first()
